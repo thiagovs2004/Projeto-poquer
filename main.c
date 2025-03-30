@@ -63,5 +63,17 @@ int main(){
         }
     }while(avancar != 1);
 
-    printf("LETSSS GO");
+
+    //INICIALIZAÇÃO DO JOGO
+    Pilha baralho;
+    criarBaralho(&baralho);
+    embaralhar(&baralho);
+
+    for(int i = 0; i<n_jogadores; i++){
+        jogadores[i].carta[0] = pop(&baralho);
+        jogadores[i].carta[0] = pop(&baralho);
+    }
+
+    
+
 }
