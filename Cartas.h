@@ -13,7 +13,7 @@ typedef enum {
 
 //Representação dos naipes das cartas
 typedef enum{
-    ESPADAS, PAUS, COPAS, OUROS
+    ESPADAS, PAUS, COPAS, OUROS 
 } tp_naipe;
 
 const char* nomes_valores[] = {
@@ -25,7 +25,18 @@ const char* nomes_naipes[] = {
     "Espadas", "Paus", "Copas", "Ouros"
 };
 
-
+const char* nomes_combinacoes(int codigo) {
+    switch(codigo){
+        case 7: return "Quadra";
+        case 6: return "Full House";
+        case 5: return "Flush";
+        case 4: return "Straight";
+        case 3: return "Trinca";
+        case 2: return "Dois Pares";
+        case 1: return "Par";
+        default: return "Carta Alta";
+    }
+}
 //Struct da carta
 typedef struct{
     tp_valor valor;
@@ -139,6 +150,13 @@ void contar_naipes(tp_carta cartas[], int total, int freq[]) {
     }
 }
 
+//Função auxiliar para ordenar cartas por valor (ordem decrescente)
+int comparar_carta(const void* a, const void* b){
+    tp_carta* cartaA = (tp_carta*)a;
+    tp_carta* cartaB = (tp_carta*)b;
+    return cartaB->valor - cartaA->valor;
+}
+
 // Verifica straight (sequência)
 int tem_straight(int freq[]) {
     for(int i = DOIS; i <= DEZ; i++) {
@@ -152,37 +170,5 @@ int tem_straight(int freq[]) {
     if(freq[AS] && freq[DOIS] && freq[TRES] && freq[QUATRO] && freq[CINCO]) return 1;
     return 0;
 }
-
-int classificar_mao(tp_carta mao[], tp_carta mesa[], int tamanho_mesa) {
-    tp_carta total[7];
-    for(int i = 0; i < 2; i++) total[i] = mao[i];
-    for(int i = 0; i < tamanho_mesa; i++) total[i + 2] = mesa[i];
-
-    int freq_valor[15] = {0};
-    int freq_naipe[4] = {0};
-
-    contar_valores(total, 2 + tamanho_mesa, freq_valor);
-    contar_naipes(total, 2 + tamanho_mesa, freq_naipe);
-
-    int pares = 0, trincas = 0;
-
-    for(int i = DOIS; i <= AS; i++) {
-        if(freq_valor[i] == 4) return 7; // Quadra (não solicitada mas pode ser adicionada)
-        if(freq_valor[i] == 3) trincas++;
-        if(freq_valor[i] == 2) pares++;
-    }
-
-    for(int i = 0; i < 4; i++) {
-        if(freq_naipe[i] >= 5) return 6; // Flush
-    }
-
-    if(tem_straight(freq_valor)) return 5; // Straight
-    if(trincas >= 1) return 3; // Trinca
-    if(pares == 2) return 2; // Dois pares
-    if(pares == 1) return 1; // Um par
-
-    return 0; // Carta alta
-}
-
 
 #endif

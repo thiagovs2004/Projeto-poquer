@@ -1,0 +1,201 @@
+
+=== Mão 1 ===
+Pietro: Carta Alta
+Sergio: Carta Alta
+
+=== Mão 2 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 3 ===
+Thiago: Carta Alta
+Sergio: Carta Alta
+
+=== Mão 4 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+Sergio: Carta Alta
+
+=== Mão 5 ===
+Thiago: Carta Alta
+Rafael: Carta Alta
+
+=== Mão 6 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+Sergio: Carta Alta
+Rafael: Carta Alta
+
+=== Mão 7 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+Sergio: Carta Alta
+
+=== Mão 8 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+Sergio: Carta Alta
+
+=== Mão 9 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 10 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 11 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 12 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 13 ===
+Thiago: Carta Alta
+Pietro: Carta Alta
+
+=== Mão 14 ===
+
+=== Mão 15 ===
+
+=== Mao 1 ===
+THiago: Par
+Pietro: Dois Pares
+Sergio: Trinca
+Rafael: Par
+
+=== Mao 2 ===
+THiago: Par
+Sergio: Trinca
+Rafael: Par
+
+=== Mao 3 ===
+THiago: Par
+Pietro: Carta Alta
+Sergio: Straight
+Rafael: Straight
+
+=== Mao 4 ===
+THiago: Par
+Pietro: Par
+Sergio: Dois Pares
+Rafael: Dois Pares
+
+=== Mao 5 ===
+Pietro: Carta Alta
+Sergio: Par
+Rafael: Dois Pares
+
+=== Mao 6 ===
+Sergio: Par
+Rafael: Par
+
+=== Mao 7 ===
+
+=== Mao 8 ===
+Sergio: Full House
+
+=== Nova Mao ===
+THiago: Carta Alta
+Pietro: Carta Alta
+Rafael: Par
+
+=== Nova Mao ===
+THiago: Par
+Rafael: Carta Alta
+Sergio: Carta Alta
+
+=== Nova Mao ===
+THiago: Par
+Rafael: Dois Pares
+
+=== Nova Mao ===
+THiago: Carta Alta
+Rafael: Par
+Sergio: Par
+
+=== Nova Mao ===
+THiago: Par
+Pietro: Dois Pares
+Rafael: Par
+Sergio: Trinca
+
+=== Nova Mao ===
+THiago: Dois Pares
+Pietro: Trinca
+Rafael: Par
+Sergio: Straight
+
+=== Nova Mao ===
+Rafael: Par
+Sergio: Par
+
+=== Nova Mao ===
+Rafael: Flush
+Sergio: Straight
+
+=== Nova Mao ===
+Sergio: Carta Alta
+
+=== Nova Mao ===
+
+=== Nova Mao ===
+Rafael: Carta Alta
+Sergio: Par
+
+=== Nova Mao ===
+Rafael: Dois Pares
+Sergio: Trinca
+
+=== Nova Mao ===
+Rafael: Dois Pares
+Sergio: Full House
+
+=== Nova Mao ===
+Sergio: Carta Alta
+
+=== Nova Mao ===
+
+=== Nova Mao ===
+Pietro: Par
+Rafael: Carta Alta
+Sergio: Carta Alta
+
+=== Nova Mao ===
+THiago: Carta Alta
+Pietro: Par
+Rafaael: Straight
+Sergio: Carta Alta
+
+=== Nova Mao ===
+THiago: Par
+Pietro: Dois Pares
+Rafaael: Straight
+Sergio: Trinca
+
+=== Nova Mao ===
+THiago: Par
+Pietro: Par
+Rafaael: Par
+Sergio: Par
+
+=== Nova Mao ===
+Pietro: Par
+Rafaael: Dois Pares
+Sergio: Dois Pares
+
+=== Nova Mao ===
+THiago: Par
+Pietro: Par
+Sergio: Par
+
+=== Nova Mao ===
+THiago: Par
+Pietro: Carta Alta
+Rafaael: Dois Pares
+Sergio: Carta Alta
+
+=== Nova Mao ===
+Rafaael: Par

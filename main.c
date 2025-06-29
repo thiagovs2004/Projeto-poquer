@@ -1,66 +1,8 @@
 #include <stdio.h>
-#include "Cartas.h"
 #include <stdlib.h>
-
-//Estrutura da mão do jogador
-typedef struct{
-    tp_carta *cartas;
-    int tamanho;
-} tp_mao;
-
-//Estrutura dos jogadores
-typedef struct{
-    char nome[MAX];
-    int fichas;
-    tp_mao mao;
-    int aposta;
-    int ativo;
-}tp_jogador;
-
-//Estrutura da mesa do jogo
-typedef struct{
-    tp_carta *cartas;
-    int tamanho;
-}tp_mesa;
-
-//Estrutura do pote de apostas
-typedef struct{
-    int quantidade;
-}Pote;
-
-//Função para inicializar a mão dos jogadores usando alocação dinâmica
-void inicializa_mao(tp_mao *mao, int tamanho){
-    mao->cartas = (tp_carta *)malloc(sizeof(tp_carta) * tamanho);
-    mao->tamanho = tamanho;
-}
-
-//Função para inicializar a mesa de cartas usando alocação dinâmica
-void inicializa_mesa(tp_mesa *mesa, int tamanho){
-    mesa->cartas = (tp_carta *)malloc(sizeof(tp_carta) * tamanho);
-    mesa->tamanho = tamanho;
-}
-
-//Função para determinar a maior mao apos a segunda rodada
-void determinar_vencedor(tp_jogador jogadores[], int n_jogadores, tp_carta mesa[], int tamanho_mesa, Pote *pote) {
-    int melhor_mao = -1;
-    int indice_vencedor = -1;
-
-    for(int i = 0; i < n_jogadores; i++) {
-        if(!jogadores[i].ativo) continue;
-        int forca_mao = classificar_mao(jogadores[i].mao.cartas, mesa, tamanho_mesa);
-        printf("%s tem mao com valor %d\n", jogadores[i].nome, forca_mao);
-
-        if(forca_mao > melhor_mao) {
-            melhor_mao = forca_mao;
-            indice_vencedor = i;
-        }
-    }
-
-    if(indice_vencedor != -1) {
-        jogadores[indice_vencedor].fichas += pote->quantidade;
-        printf("\n%s venceu a rodada e ganhou %d fichas!\n", jogadores[indice_vencedor].nome, pote->quantidade);
-    }
-}
+#include "Cartas.h"
+#include "FluxoDeJogo.h"
+#include "Combinacoes.h"
 
 
 int main(){
@@ -69,7 +11,15 @@ int main(){
     int n_jogadores;
     Pilha baralho;
     tp_mesa mesa;
-    
+
+    //Variaveis para registrar as combinações ao longo do jogo
+    int historico[8] = {0};
+    static int numero_mao = 1;
+
+  carregar_historico("historico.txt");
+
+
+    //INICIO DO JOGO
     printf("Ola, seja bem vindo ao TecPoquer. Esperamos que a sua sorte esteja em dia. \n");
     do{
         printf("\nEscolha o numero de jogadores: (2 - 4)\n");
@@ -81,6 +31,7 @@ int main(){
     } while(n_jogadores < 2 || n_jogadores > 4);
 
     tp_jogador jogadores[n_jogadores];
+    int codigos[n_jogadores];
 
     printf("\nOtimo. Hora de escolher os nomes dos jogadores! \n");
     for(int i=0; i<n_jogadores; i++){
@@ -118,56 +69,102 @@ int main(){
 
 
     //INICIALIZAÇÃO DO JOGO
-    
+
+    for(int i=0; i<n_jogadores;i++){
+        inicializa_mao(&jogadores[i].mao,2);
+        jogadores[i].fichas = 1000;
+        jogadores[i].ativo = 1;
+    }
+    inicializa_mesa(&mesa, 5);
+
+    while (1) {
+
+    int ativos = 0;
+    int indice_vencedor = -1;
+
+    for (int i = 0; i < n_jogadores; i++){
+        if (jogadores[i].ativo && jogadores[i].fichas > 0){
+            ativos++;
+            indice_vencedor = i;
+        }
+    }
+
+    if (ativos == 1) {
+        printf("\n***** %s vence a partida com %d fichas! *****\n", jogadores[indice_vencedor].nome, jogadores[indice_vencedor].fichas);
+        break;                                 
+    }
+    else if(ativos == 0){
+        printf("\n***** Todos os jogadores ficaram sem fichas! *****\n");
+        break;
+    }
+  
     criarBaralho(&baralho);
     embaralhar(&baralho);
     Pote pote;
     int escolha;
 
-    for(int i = 0; i<n_jogadores; i++){
-        inicializa_mao(&jogadores[i].mao, 2);
-        jogadores[i].mao.cartas[0] = pop(&baralho);
-        jogadores[i].mao.cartas[1] = pop(&baralho);
-        jogadores[i].fichas = 1000;
-        jogadores[i].ativo = 1;
-    }
-
-    inicializa_mesa(&mesa, 5);
-    for(int i=0; i<mesa.tamanho; i++){
-        mesa.cartas[i] = pop(&baralho);
-    }
-
-
-    printf("\nCartas e fichas inicias distribuidas!\n");
-
-    printf("\nRODADA INICIAL!!!\n");
-
+    
     int apostaAtual = 0;
     pote.quantidade = 0;
 
+    for (int i = 0; i < n_jogadores; i++) {
+        jogadores[i].ativo  = (jogadores[i].fichas > 0);
+        jogadores[i].aposta = 0;
+        if (!jogadores[i].ativo) continue;
+
+        jogadores[i].mao.cartas[0] = pop(&baralho);
+        jogadores[i].mao.cartas[1] = pop(&baralho);
+    }
+
+    for (int c = 0; c < 5; c++)
+        mesa.cartas[c] = pop(&baralho);
+    
+    
+    printf("\nCartas e fichas inicias distribuidas!\n");
+
+    printf("\n========== TURNO: PRE-FLOP (primeiro turno) ==========\n");
+
+
     for(int i=0; i<n_jogadores; i++){
         int turnoJogador = i;
+
+        if(!jogadores[i].ativo) continue;
+
         if(turnoJogador == 0){
             printf("\nTurno de %s: \n", jogadores[i].nome);
+            printf("Sua mao: %s de %s e %s de %s\n", nomes_valores[jogadores[i].mao.cartas[0].valor], nomes_naipes[jogadores[i].mao.cartas[0].naipe], nomes_valores[jogadores[i].mao.cartas[1].valor], nomes_naipes[jogadores[i].mao.cartas[1].naipe]);
             printf("Insira o valor da sua aposta inicial: \n");
             scanf("%d", &jogadores[i].aposta);
+
+            if (jogadores[i].fichas < jogadores[i].aposta) {
+                puts("Fichas insuficientes. O jogador desistiu.");
+                jogadores[i].ativo = 0;
+                continue;
+            }
+
             apostaAtual = jogadores[i].aposta;
         }
         else{
             printf("\n\nTurno de %s: \n", jogadores[i].nome);
+            printf("Sua mao: %s de %s e %s de %s\n", nomes_valores[jogadores[i].mao.cartas[0].valor], nomes_naipes[jogadores[i].mao.cartas[0].naipe], nomes_valores[jogadores[i].mao.cartas[1].valor], nomes_naipes[jogadores[i].mao.cartas[1].naipe]);
             printf("Aposta atual: %d", apostaAtual);
             do{
-                printf("\nO que deseja fazer? (1-cobrir aposta  2-Aumentar aposta)\n");
+                printf("\nO que deseja fazer? (1-Cobrir aposta | 2-Aumentar aposta | 3-Desistir)\n");
                 scanf("%d", &escolha);
-                if(escolha != 1 && escolha != 2)
+                if(escolha != 1 && escolha != 2 && escolha != 3)
                     printf("Opcao invalida. Escolha entre as opcoes 1 e 2. \n");
-            }while(escolha != 1 && escolha != 2);
+            }while(escolha != 1 && escolha != 2 && escolha != 3);
 
             if(escolha == 1){
                 jogadores[i].aposta = apostaAtual;
+                if (jogadores[i].fichas < jogadores[i].aposta) {
+                puts("Fichas insuficientes. O jogador desistiu.");
+                jogadores[i].ativo = 0;
+                continue;
+            }
                 printf("%s cobriu a aposta!!\n", jogadores[i].nome);
             }
-            else{
+            else if(escolha == 2){
                 int novaAposta;
                 do{
                     printf("Insira o valor da nova aposta:  (aposta atual = %d)\n", apostaAtual);
@@ -176,8 +173,18 @@ int main(){
                         printf("O valor da sua aposta deve ser maior que o da aposta atual. (%d fichas)\n", apostaAtual);
                 }while(novaAposta <= apostaAtual);
                 jogadores[i].aposta = novaAposta;
+                if (jogadores[i].fichas < jogadores[i].aposta) {
+                    puts("Fichas insuficientes. O jogador desistiu.");
+                    jogadores[i].ativo = 0;
+                    continue;
+                }
                 apostaAtual = novaAposta;
                 printf("%s aumentou a aposta para %d.\n", jogadores[i].nome, novaAposta);
+            }
+            else{
+                printf("%s desistiu da rodada!\n", jogadores[i].nome);
+                jogadores[i].ativo = 0;
+                continue;
             }
         }
         jogadores[i].fichas -= jogadores[i].aposta;
@@ -185,71 +192,94 @@ int main(){
     }
     printf("Rodada inicial encerrada. \n");
 
-
-
-    //SEGUNDA RODADA (JOGADORES VISUALIZAM A MAO E AS CARTAS NA MESA E PODEM COMEÇAR A FAZER COMBINAÇÕES)
+    //JOGADORES VISUALIZAM A MAO E AS CARTAS NA MESA E PODEM COMEÇAR A FAZER COMBINAÇÕES
     int turno = 0;
-    int jogaramNaFase = 0;
 
     while(turno <= 2){
-        for(int i=0; i<n_jogadores; i++){
-            if(!jogadores[i].ativo) continue;
-            printf("\nCartas reveladas: \n");
-            for(int j=0; j<3+turno; j++){
-                printf("Carta %d-> %s de %s\n", j+1, nomes_valores[mesa.cartas[j].valor], nomes_naipes[mesa.cartas[j].naipe]);
-            }
-
-            int opcao;
-            int novaAposta;
-
-            printf("\nTurno de %s: \n", jogadores[i].nome);
-            printf("Sua mao: %s de %s  e  %s de %s\n", nomes_valores[jogadores[i].mao.cartas[0].valor], nomes_naipes[jogadores[i].mao.cartas[0].naipe], nomes_valores[jogadores[i].mao.cartas[1].valor], nomes_naipes[jogadores[i].mao.cartas[1].naipe]);
-            do{
-                printf("\nSelecione uma opcao: (1-> cobrir aposta (%d fichas) // 2-> Aumentar aposta // 3-> Desistir)\n", apostaAtual);
-                scanf("%d", &opcao);
-                if(opcao!=1 && opcao!=2 && opcao!=3)
-                    printf("Opcao invalida.");
-                }while(opcao!=1 && opcao!=2 && opcao!=3);
-
-            switch(opcao){
-                case 1:
-                jogadores[i].aposta = apostaAtual;
-                jogadores[i].fichas -= jogadores[i].aposta;
-                pote.quantidade += jogadores[i].aposta;
-                printf("\n%s cobriu a aposta!!\n", jogadores[i].nome);
-                break;
-
-                case 2:
-                do{
-                printf("\nInsira o valor da sua aposta: (aposta atual = %d fichas)\n", apostaAtual);
-                scanf("%d", &novaAposta);
-                if(novaAposta <= apostaAtual)
-                    printf("A nova aposta deve ser maior do que a atual (%d fichas) ", apostaAtual);
-                }while(novaAposta <= apostaAtual);
-                jogadores[i].aposta = novaAposta;
-                jogadores[i].fichas -= jogadores[i].aposta;
-                pote.quantidade += jogadores[i].aposta;
-                apostaAtual = novaAposta;
-                printf("%s aumentou a aposta para %d!\n", jogadores[i].nome, novaAposta);
-                break;
-
-                case 3:
-                jogadores[i].ativo = 0;
-                printf("%s desistiu da rodada!\n", jogadores[i].nome);
-                continue;
-            }
-
-            jogaramNaFase++;
-        }
 
         int ativos = 0;
-        for(int i=0; i<n_jogadores; i++){
-            if(jogadores[i].ativo) ativos++;
+        for(int k=0;k<n_jogadores;k++){
+            if(jogadores[k].ativo && jogadores[k].fichas > 0){
+                ativos++;
+            }
         }
+        if(ativos <= 1) break;
 
-        if(jogaramNaFase == ativos){
+        if(turno == 0)
+            printf("\n========== TURNO: FLOP (segundo turno) ==========\n");
+        else if(turno == 1)
+            printf("\n========== TURNO: TURN (terceiro turno) ==========\n");
+        else if(turno == 2)
+            printf("\n========== TURNO: RIVER (quarto turno) ==========\n");    
+
+            int jogaramNaFase = 0;
+            for(int i=0;i<n_jogadores;i++){
+                if(!jogadores[i].ativo || jogadores[i].fichas <= 0) continue;
+                
+                printf("\nCartas reveladas: \n");
+                for(int j=0; j<3+turno; j++){
+                    printf("Carta %d-> %s de %s\n", j+1, nomes_valores[mesa.cartas[j].valor], nomes_naipes[mesa.cartas[j].naipe]);
+                }
+
+                printf("\nTurno de %s: \n", jogadores[i].nome);
+                printf("Sua mao: %s de %s  e  %s de %s\n", nomes_valores[jogadores[i].mao.cartas[0].valor], nomes_naipes[jogadores[i].mao.cartas[0].naipe], nomes_valores[jogadores[i].mao.cartas[1].valor], nomes_naipes[jogadores[i].mao.cartas[1].naipe]);
+                int opcao, novaAposta;
+                do{
+                    printf("\nSelecione uma opcao: (1-> cobrir aposta (%d fichas) // 2-> Aumentar aposta // 3-> Desistir)\n", apostaAtual);
+                    scanf("%d", &opcao);
+                    if(opcao!=1 && opcao!=2 && opcao!=3)
+                        printf("Opcao invalida.");
+                    }while(opcao!=1 && opcao!=2 && opcao!=3);
+
+                switch(opcao){
+                    case 1:
+                    jogadores[i].aposta = apostaAtual;
+                    if (jogadores[i].fichas < jogadores[i].aposta) {
+                    puts("Fichas insuficientes. O jogador desistiu.");
+                    jogadores[i].ativo = 0;
+                    continue;
+                }
+                    jogadores[i].fichas -= jogadores[i].aposta;
+                    pote.quantidade += jogadores[i].aposta;
+                    printf("\n%s cobriu a aposta!!\n", jogadores[i].nome);
+                    break;
+
+                    case 2:
+                    do{
+                    printf("\nInsira o valor da sua aposta: (aposta atual = %d fichas)\n", apostaAtual);
+                    scanf("%d", &novaAposta);
+                    if(novaAposta <= apostaAtual)
+                        printf("A nova aposta deve ser maior do que a atual (%d fichas) ", apostaAtual);
+                    }while(novaAposta <= apostaAtual);
+
+                    jogadores[i].aposta = novaAposta;
+
+                    if (jogadores[i].fichas < jogadores[i].aposta) {
+                        puts("Fichas insuficientes. O jogador desistiu.");
+                        jogadores[i].ativo = 0;
+                        continue;
+                    }
+
+                    jogadores[i].fichas -= jogadores[i].aposta;
+                    pote.quantidade += jogadores[i].aposta;
+                    apostaAtual = novaAposta;
+                    printf("%s aumentou a aposta para %d!\n", jogadores[i].nome, novaAposta);
+                    break;
+
+                    case 3:
+                    jogadores[i].ativo = 0;
+                    ativos--;
+                    printf("%s desistiu da rodada!\n", jogadores[i].nome);
+                    continue;
+                }
+
+                jogaramNaFase++;
+            }
+
+
+        if(jogaramNaFase >= ativos){
             turno ++;
-            jogaramNaFase = 0;
+           
 
             if(turno == 1){
                 printf("\nQuarta carta na mesa revelada: %s de %s\n", nomes_valores[mesa.cartas[3].valor], nomes_naipes[mesa.cartas[3].naipe]);
@@ -260,5 +290,35 @@ int main(){
     }
 
     printf("\nRodada finalizada.\n");
-    determinar_vencedor(jogadores, n_jogadores, mesa.cartas, mesa.tamanho, &pote);
+   
+    for (int i = 0; i < n_jogadores; i++) {
+    if (jogadores[i].ativo)               
+        codigos[i] = avaliar_mao(jogadores[i], mesa);
+    else
+        codigos[i] = -1;                 
 }
+
+    determinar_vencedor(jogadores, n_jogadores, mesa, &pote);
+
+    salvar_combinacoes_arquivo("historico.txt", jogadores, n_jogadores, mesa);
+    numero_mao++;
+
+    for (int i = 0; i < n_jogadores; i++)
+        if (jogadores[i].fichas <= 0)
+            jogadores[i].ativo = 0;
+
+    puts("\n--- Situacao de fichas ---");
+    for (int i = 0; i < n_jogadores; i++)
+        printf("%s : %d\n", jogadores[i].nome, jogadores[i].fichas);
+
+}
+
+mostrar_estatisticas_finais();
+
+for (int i = 0; i < n_jogadores; i++)
+    free(jogadores[i].mao.cartas);
+free(mesa.cartas);
+
+
+return 0;
+} 
